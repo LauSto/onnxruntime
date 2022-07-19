@@ -36,15 +36,15 @@ class TrainingSession {
 
   Status TrainStep(const RunOptions& run_options,
                    const std::vector<OrtValue>& inputs,
-                   std::vector<OrtValue>& fetches) const;
+                   std::vector<OrtValue>& fetches);
 
   Status EvalStep(const RunOptions& run_options,
                   const std::vector<OrtValue>& inputs,
                   std::vector<OrtValue>& fetches) const;
 
-  Status ResetGrad() const;
+  Status ResetGrad();
 
-  Status OptimizerStep(const RunOptions& run_options) const;
+  Status OptimizerStep(const RunOptions& run_options);
 
   Status CreateCheckpointState(CheckpointState& chkpt_state, bool save_optimizer_state) const;
 

@@ -78,21 +78,21 @@ ORT_API_STATUS_IMPL(OrtTrainingApis::TrainingSessionGetEvalModeOutputCount, _In_
   API_IMPL_END
 }
 
-ORT_API_STATUS_IMPL(OrtTrainingApis::ResetGrad, _In_ const OrtTrainingSession* session) {
+ORT_API_STATUS_IMPL(OrtTrainingApis::ResetGrad, _Inout_ OrtTrainingSession* session) {
   API_IMPL_BEGIN
-  auto train_session = reinterpret_cast<const onnxruntime::training::api::TrainingSession*>(session);
+  auto train_session = reinterpret_cast<onnxruntime::training::api::TrainingSession*>(session);
   ORT_API_RETURN_IF_STATUS_NOT_OK(train_session->ResetGrad());
 
   return nullptr;
   API_IMPL_END
 }
 
-ORT_API_STATUS_IMPL(OrtTrainingApis::TrainStep, _In_ const OrtTrainingSession* sess,
+ORT_API_STATUS_IMPL(OrtTrainingApis::TrainStep, _Inout_ OrtTrainingSession* sess,
                     _In_opt_ const OrtRunOptions* run_options, size_t inputs_len,
                     _In_reads_(inputs_len) const OrtValue* const* inputs, size_t outputs_len,
                     _Inout_updates_all_(outputs_len) OrtValue** outputs) {
   API_IMPL_BEGIN
-  auto session = reinterpret_cast<const onnxruntime::training::api::TrainingSession*>(sess);
+  auto session = reinterpret_cast<onnxruntime::training::api::TrainingSession*>(sess);
   constexpr int queue_id = 0;
 
   std::vector<OrtValue> feeds(inputs_len);
@@ -184,10 +184,10 @@ ORT_API_STATUS_IMPL(OrtTrainingApis::EvalStep, _In_ const OrtTrainingSession* se
   API_IMPL_END
 }
 
-ORT_API_STATUS_IMPL(OrtTrainingApis::OptimizerStep, _In_ const OrtTrainingSession* sess,
+ORT_API_STATUS_IMPL(OrtTrainingApis::OptimizerStep, _Inout_ OrtTrainingSession* sess,
                     _In_opt_ const OrtRunOptions* run_options) {
   API_IMPL_BEGIN
-  auto session = reinterpret_cast<const onnxruntime::training::api::TrainingSession*>(sess);
+  auto session = reinterpret_cast<onnxruntime::training::api::TrainingSession*>(sess);
   if (run_options == nullptr) {
     OrtRunOptions op;
     ORT_API_RETURN_IF_STATUS_NOT_OK(session->OptimizerStep(op));

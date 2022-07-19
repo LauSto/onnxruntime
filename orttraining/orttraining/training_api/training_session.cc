@@ -31,7 +31,7 @@ size_t TrainingSession::GetEvalModeOutputCount() const noexcept {
 
 Status TrainingSession::TrainStep(const RunOptions&,
                                   const std::vector<OrtValue>& inputs,
-                                  std::vector<OrtValue>& fetches) const {
+                                  std::vector<OrtValue>& fetches) {
   return module_->TrainStep(inputs, fetches);
 }
 
@@ -41,11 +41,11 @@ Status TrainingSession::EvalStep(const RunOptions&,
   return module_->EvalStep(inputs, fetches);
 }
 
-Status TrainingSession::ResetGrad() const {
+Status TrainingSession::ResetGrad() {
   return module_->ResetGrad();
 }
 
-Status TrainingSession::OptimizerStep(const RunOptions&) const {
+Status TrainingSession::OptimizerStep(const RunOptions&) {
   return optimizer_->Step();
 }
 

@@ -6,8 +6,8 @@
 #pragma once
 #include "core/session/onnxruntime_c_api.h"
 
-ORT_RUNTIME_CLASS(TrainingSession); /// Class that enables performing training for the given user models.
-ORT_RUNTIME_CLASS(CheckpointState); /// Struct that holds the training states for the training session.
+ORT_RUNTIME_CLASS(TrainingSession); /// Type that enables performing training for the given user models.
+ORT_RUNTIME_CLASS(CheckpointState); /// Type that holds the training states for the training session.
 
 struct OrtTrainingApi {
   /** \brief Load a checkpoint state from directory on disk into checkpoint_state.
@@ -27,7 +27,7 @@ struct OrtTrainingApi {
 
   /** \brief Save the training session states to a checkpoint directory on disk.
   *
-  * This function retrieve the training session states from the training session and serialize them
+  * This function retrieves the training session states from the training session and serializes them
   * to a checkpoint directory on disk. This checkpoint can later be loaded by invoking LoadCheckpoint
   * to continue the training with the same states.
   *
@@ -45,6 +45,8 @@ struct OrtTrainingApi {
   *
   * This function creates a training session based on the env and session options provided that can
   * begin or resume training from a given checkpoint state for the given onnx models.
+  * The checkpoint state represents the parameters of the training session which will be moved
+  * to the device specified by the user through the session options (if necessary).
   *
   * \param[in] env Environment to be used for the training session.
   * \param[in] options Session options that the user can customize for this training session.
@@ -93,18 +95,20 @@ struct OrtTrainingApi {
   * This function sets the internal state of the training session such that the training model gradients
   * will be reset just before the new gradients are computed on the next invocation of TrainStep.
   *
-  * \param[in] sess The training session which has working knowledge of the eval model.
+  * \param[in] session The training session which has working knowledge of the eval model.
   *
   * \snippet{doc} snippets.dox OrtStatus Return Value
   *
   */
-  ORT_API2_STATUS(ResetGrad, _In_ const OrtTrainingSession* session);
+  ORT_API2_STATUS(ResetGrad, _Inout_ OrtTrainingSession* session);
 
   /** \brief Computes the outputs and the gradients for the training model for the given inputs
   *
   * This function performs a training step that computes the outputs and the gradients of the training model
   * for the given inputs. The train step is performed based on the training model that was provided
   * to the training session.
+  * The gradients computed are stored inside the training session so they can be later consumed
+  * by the OptimizerStep function.
   *
   * \param[in] sess The training session which has working knowledge of the eval model.
   * \param[in] run_options Run options for this training step.
@@ -116,7 +120,7 @@ struct OrtTrainingApi {
   * \snippet{doc} snippets.dox OrtStatus Return Value
   *
   */
-  ORT_API2_STATUS(TrainStep, _In_ const OrtTrainingSession* sess, _In_opt_ const OrtRunOptions* run_options,
+  ORT_API2_STATUS(TrainStep, _Inout_ OrtTrainingSession* sess, _In_opt_ const OrtRunOptions* run_options,
                   size_t inputs_len, _In_reads_(inputs_len) const OrtValue* const* inputs,
                   size_t outputs_len, _Inout_updates_all_(outputs_len) OrtValue** outputs);
 
@@ -142,8 +146,10 @@ struct OrtTrainingApi {
   /** \brief Performs the weight updates for the trainable parameters using the optimizer model.
   *
   * This function performs the weight update step that updates the trainable parameters such that they
-  * take a step in the direction of their gradients. The optimizer step is performe based on the optimizer
+  * take a step in the direction of their gradients. The optimizer step is performed based on the optimizer
   * model that was provided to the training session.
+  * The updated parameters are stored inside the training session so that they can be used by the next
+  * TrainStep function call.
   *
   * \param[in] sess The training session which has working knowledge of the optimizer model.
   * \param[in] run_options Run options for this eval step.
@@ -151,16 +157,13 @@ struct OrtTrainingApi {
   * \snippet{doc} snippets.dox OrtStatus Return Value
   *
   */
-  ORT_API2_STATUS(OptimizerStep, _In_ const OrtTrainingSession* sess,
+  ORT_API2_STATUS(OptimizerStep, _Inout_ OrtTrainingSession* sess,
                   _In_opt_ const OrtRunOptions* run_options);
 
   /** \brief Frees up the memory used up by the training session.
   *
   * This function frees up any memory that was allocated in the training session. The training
   * session can no longer be used after this call.
-  *
-  *
-  * \snippet{doc} snippets.dox OrtStatus Return Value
   *
   */
   ORT_CLASS_RELEASE(TrainingSession);
@@ -169,9 +172,6 @@ struct OrtTrainingApi {
   *
   * This function frees up any memory that was allocated in the checkpoint state. The checkpoint
   * state can no longer be used after this call.
-  *
-  *
-  * \snippet{doc} snippets.dox OrtStatus Return Value
   *
   */
   ORT_CLASS_RELEASE(CheckpointState);
